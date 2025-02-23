@@ -2,22 +2,26 @@ from flask import flash, redirect, render_template, url_for
 
 from . import app, db
 from .models import URLMap
-from .forms import URL_mapForm
+from .forms import URLMapForm
 from .utils import get_unique_short_id
 
 
 @app.route('/', methods=['GET', 'POST'])
 def index_view():
-    form = URL_mapForm()
-    if form.validate_on_submit():
-        short = form.custom_id.data or get_unique_short_id()
-        url_map = URLMap(
-            original=form.original_link.data,
-            short=short
+    form = URLMapForm()
+    if not form.validate_on_submit():
+        return render_template(
+            'main.html',
+            form=form
         )
-        db.session.add(url_map)
-        db.session.commit()
-        flash(url_for('short', short=short, _external=True))
+    short = form.custom_id.data or get_unique_short_id()
+    url_map = URLMap(
+        original=form.original_link.data,
+        short=short
+    )
+    db.session.add(url_map)
+    db.session.commit()
+    flash(url_for('short', short=short, _external=True))
     return render_template(
         'main.html',
         form=form
